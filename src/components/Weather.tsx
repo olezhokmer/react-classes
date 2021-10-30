@@ -1,9 +1,20 @@
 import React from 'react';
-
+import Async from 'react-async';
 
 class Weather extends React.Component {
     constructor(props : any) {
       super(props);
+    }
+    loadWeather(){
+      const cities = [
+        'Kiev', 'Dnipro', 'Odesa'
+      ]
+      const promises = cities.map((city:string) => fetch("https://api.openweathermap.org/data/2.5/weather?q="+city+"&appid=76d61b890bc6889c08395f813560fc9d"))
+      return Promise.all(promises).then(res => res)
+      .then(res => {
+        let jsons = res.map(r => r.json());
+        return Promise.all(jsons);
+      });
     }
     submit(e : any){
       e.preventDefault();
@@ -42,6 +53,47 @@ class Weather extends React.Component {
               </div>
               
           </form>
+          <div className="container flex justify-center mx-auto">
+    <div className="flex flex-col">
+        <div className="w-full">
+            <div className="border-b border-gray-200 shadow">
+                <table>
+                    <thead className="bg-gray-50">
+                        <tr>
+                            <th className="px-6 py-2 text-xs text-gray-500">
+                                City
+                            </th>
+                            <th className="px-6 py-2 text-xs text-gray-500">
+                                Temp
+                            </th>
+                            <th className="px-6 py-2 text-xs text-gray-500">
+                                Weather
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody className="bg-white">
+                        <Async promiseFn={this.loadWeather}>
+                          {({ data }) => {
+                            if (data)
+                              return data.map(w => {
+                                return (
+                                  <tr key={w.name} className="bg-white">
+                                    <td className="px-6 py-4 text-sm text-gray-500">{w.name}</td>
+                                    <td className="px-6 py-4 text-sm text-gray-500">{Math.round(w.main.temp - 273)}</td>
+                                    <td className="px-6 py-4 text-sm text-gray-500">{w.weather[0].main}</td>
+                                  </tr>
+                                )
+                              });
+                          }}
+                        </Async>
+                       
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
       </div>    
         );
       }
